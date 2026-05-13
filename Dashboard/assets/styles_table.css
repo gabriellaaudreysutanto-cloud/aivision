@@ -1,0 +1,83 @@
+/* Apple-style table and form fallback styles. */
+* {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif !important;
+}
+
+.header-section {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.product-title {
+  color: #1d1d1f;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-bottom: 15px;
+}
+
+.stTextInput input,
+.stSelectbox select,
+.stNumberInput > div > input {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.10) !important;
+  border-radius: 10px !important;
+  color: #1d1d1f !important;
+  padding: 9px 12px !important;
+}
+
+.stTextInput input:focus,
+.stSelectbox select:focus,
+.stNumberInput > div > input:focus {
+  border-color: rgba(0, 113, 227, 0.55) !important;
+  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.18) !important;
+  outline: none !important;
+}
+
+.stRadio > label {
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+}
+
+table.dataframe {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-collapse: collapse;
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+  margin-top: 10px;
+  overflow: hidden;
+  width: 100%;
+}
+
+table.dataframe thead th {
+  background-color: #fbfbfd !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  color: #1d1d1f !important;
+  font-weight: 650 !important;
+  padding: 12px 10px !important;
+}
+
+table.dataframe tbody td {
+  background: #ffffff !important;
+  border-bottom: 1px solid rgba(24, 45, 80, 0.08) !important;
+  color: #1d1d1f !important;
+  font-size: 14px !important;
+  padding: 11px 10px !important;
+}
+
+table.dataframe tbody tr:nth-child(even) td {
+  background: #f7fbff !important;
+}
+
+table.dataframe tbody tr:hover td {
+  background: #e8f6ff !important;
+  cursor: pointer;
+}
+
+.pagination-footer {
+  color: #536074;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 5px;
+  text-align: right;
+}
