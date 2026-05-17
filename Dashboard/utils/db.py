@@ -17,7 +17,7 @@ def get_conn():
         port=os.getenv("DB_PORT", "5432"),
         dbname=os.getenv("DB_NAME", "aivisionfinal"),
         user=os.getenv("DB_USER", "postgres"),
-        password=os.getenv("DB_PASSWORD", ""),
+        password=os.getenv("DB_PASSWORD", "beatrice630478"),
     )
 
 
