@@ -244,6 +244,39 @@ def _render_sidebar_css():
                 margin-top: 0.78rem;
             }
         }
+
+        @media (max-width: 640px) {
+            .sb-shell {
+                min-height: auto;
+                padding: 1rem 0.85rem;
+            }
+
+            .sb-brand-card {
+                border-radius: 14px;
+                margin-bottom: 1rem;
+                min-height: auto;
+                padding: 0.75rem;
+            }
+
+            .sb-brand-title {
+                white-space: normal;
+            }
+
+            .sb-group-title {
+                margin-left: 0.35rem;
+                margin-top: 0.85rem;
+            }
+
+            .sb-nav-link {
+                border-radius: 12px;
+                min-height: 42px;
+                padding: 0.48rem 0.62rem;
+            }
+
+            .sb-nav-text {
+                font-size: 0.84rem;
+            }
+        }
         </style>
         """,
         unsafe_allow_html=True

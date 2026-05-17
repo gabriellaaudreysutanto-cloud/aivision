@@ -63,6 +63,7 @@ def global_style():
 
         .stApp,
         .stApp * {
+            box-sizing: border-box;
             font-family: var(--font-app);
             letter-spacing: 0;
             -webkit-font-smoothing: antialiased;
@@ -934,6 +935,192 @@ def global_style():
             .history-grid,
             .micro-kpis {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            html,
+            body,
+            .stApp,
+            [data-testid="stAppViewContainer"],
+            [data-testid="stMain"] {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .main .block-container,
+            [data-testid="stMain"] .block-container {
+                padding: 0.78rem 0.72rem 1.4rem;
+            }
+
+            [data-testid="stMain"] [data-testid="stHorizontalBlock"] {
+                flex-direction: column !important;
+                gap: 0.85rem !important;
+            }
+
+            [data-testid="stMain"] [data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+                flex: 1 1 100% !important;
+                min-width: 0 !important;
+                width: 100% !important;
+            }
+
+            [data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"],
+            .app-page-header,
+            .role-hero,
+            .action-banner,
+            .ui-card,
+            .kpi-card,
+            .insight-strip-card,
+            .list-card,
+            .history-card,
+            .micro-kpi,
+            .home-header,
+            .monitor-hero,
+            .compliance-card {
+                border-radius: 14px !important;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            }
+
+            .app-page-header,
+            .role-hero,
+            .action-banner,
+            .home-header,
+            .monitor-hero,
+            .compliance-card {
+                padding: 1rem !important;
+            }
+
+            .app-page-title,
+            .home-title {
+                font-size: 1.55rem !important;
+                line-height: 1.14 !important;
+                overflow-wrap: anywhere;
+            }
+
+            .role-hero-title,
+            .monitor-title {
+                font-size: 1.28rem !important;
+                line-height: 1.18 !important;
+                overflow-wrap: anywhere;
+            }
+
+            .app-page-description,
+            .home-subtitle,
+            .role-hero-subtitle,
+            .monitor-copy,
+            .section-description {
+                font-size: 0.88rem !important;
+                line-height: 1.48 !important;
+            }
+
+            .app-page-header,
+            .role-hero-top,
+            .action-banner-main,
+            .home-header,
+            .monitor-hero-top,
+            .home-panel-head,
+            .history-card-top,
+            .compliance-result-top {
+                align-items: flex-start !important;
+                flex-direction: column !important;
+            }
+
+            .app-page-chip,
+            .home-chip,
+            .status-pill,
+            .list-card-badge,
+            .history-card-badge {
+                max-width: 100%;
+                white-space: normal;
+            }
+
+            .kpi-card {
+                margin-bottom: 0;
+                min-height: auto;
+                padding: 0.95rem 1rem;
+            }
+
+            .kpi-value,
+            div[data-testid="stMetricValue"] {
+                font-size: 1.28rem !important;
+                overflow-wrap: anywhere;
+            }
+
+            .role-hero-stats,
+            .insight-strip,
+            .history-grid,
+            .micro-kpis,
+            .monitor-stats,
+            .compliance-metrics,
+            .compliance-compare-grid,
+            .compliance-confidence {
+                grid-template-columns: 1fr !important;
+            }
+
+            .role-hero-icon,
+            .action-banner-icon,
+            .monitor-icon {
+                flex-basis: 40px !important;
+                height: 40px !important;
+                width: 40px !important;
+            }
+
+            .list-card,
+            .warning-card {
+                align-items: flex-start;
+                padding: 0.9rem;
+            }
+
+            div[data-testid="stMetric"] {
+                min-height: auto;
+                padding: 0.85rem 0.9rem !important;
+            }
+
+            div[data-testid="stButton"] > button,
+            div[data-testid="stFormSubmitButton"] > button,
+            div[data-testid="stDownloadButton"] > button,
+            div[data-testid="stFileUploader"] button {
+                min-width: 0 !important;
+                width: 100% !important;
+            }
+
+            div[data-testid="stFileUploader"] section {
+                min-height: auto;
+                padding: 0.85rem !important;
+            }
+
+            .stTabs [data-baseweb="tab-list"] {
+                border-radius: 14px;
+                display: flex;
+                max-width: 100%;
+                overflow-x: auto;
+                width: 100%;
+            }
+
+            .stTabs [data-baseweb="tab"] {
+                flex: 0 0 auto;
+            }
+
+            .stDataFrame,
+            div[data-testid="stDataFrame"],
+            .plano-grid-wrap {
+                max-width: 100%;
+                overflow-x: auto !important;
+            }
+
+            .plano-grid {
+                min-width: 520px !important;
+            }
+
+            img,
+            [data-testid="stImage"] img {
+                height: auto;
+                max-width: 100%;
+            }
+
+            .footer {
+                font-size: 0.72rem;
+                line-height: 1.4;
             }
         }
         </style>
