@@ -15,9 +15,11 @@ OWN_PRODUCT_HINTS = (
     "owned",
     "company",
     "customer",
+    "otsuka",
     "pocari",
     "ion water",
     "soyjoy",
+    "oronamin",
     "or beng",
     "fibe mini",
     "adem sari",
@@ -146,7 +148,6 @@ def build_history_frame(history: list[dict]) -> pd.DataFrame:
     for item in history:
         rows.append(
             {
-                "Request ID": clean_value(item.get("request_id")),
                 "Foto": os.path.basename(clean_value(item.get("input_image_path"), "")) or "-",
                 "Status": clean_value(item.get("status")).upper(),
                 "Deteksi": item.get("detection_count", 0),
@@ -236,7 +237,7 @@ def render_result_page():
         st.warning(st.session_state.result_history_warning)
 
     if history:
-        section_header("Riwayat eksekusi", "Pilih salah satu foto/request untuk membuka hasil deteksi detail.")
+        section_header("Riwayat eksekusi", "Pilih salah satu foto untuk membuka hasil deteksi detail.")
         history_frame = build_history_frame(history)
         st.dataframe(history_frame, use_container_width=True, hide_index=True)
 
@@ -249,7 +250,6 @@ def render_result_page():
             index=selected_index,
             format_func=lambda value: next(
                 (
-                    f"{clean_value(item.get('request_id'))[:12]}... | "
                     f"{os.path.basename(clean_value(item.get('input_image_path'), '')) or '-'} | "
                     f"{format_run_at(item.get('run_at') or item.get('created_at'))}"
                     for item in history
@@ -304,7 +304,6 @@ def render_result_page():
     conclusion = build_rack_conclusion(detection_count, owner_count, avg_conf, detections_df)
 
     status = clean_value(raw_result.get("status"), "success")
-    request_id = clean_value(raw_result.get("request_id"))
     app_id = clean_value(raw_result.get("app_id"))
     planogram_id = clean_value(overview.get("planogram_id"))
     output_image_path = clean_value(overview.get("output_image_path"))
@@ -360,12 +359,7 @@ def render_result_page():
         section_header("Run overview", "Metadata penting untuk audit trail dan review hasil.")
         status_pill(str(status).upper(), "success" if str(status).lower() == "success" else "warning")
 
-        meta_cols = st.columns(2)
-        with meta_cols[0]:
-            render_metric_card("Request ID", request_id[:12] + "..." if request_id != "-" and len(request_id) > 12 else request_id, tone="blue", icon="ID")
-        with meta_cols[1]:
-            render_metric_card("Planogram ID", planogram_id, tone="green", icon="PG")
-
+        render_metric_card("Planogram ID", planogram_id, tone="green", icon="PG")
         render_metric_card("Run Analysis", run_at_display, "Tanggal dan jam saat analisis dijalankan.", tone="orange", icon="TM")
 
         with st.container(border=True):

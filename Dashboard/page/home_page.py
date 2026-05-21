@@ -18,48 +18,6 @@ APP_OPTIONS = [
     "APP003",
 ]
 
-PROVINCE_OPTIONS = [
-    "Pilih provinsi",
-    "Aceh",
-    "Sumatera Utara",
-    "Sumatera Barat",
-    "Riau",
-    "Jambi",
-    "Sumatera Selatan",
-    "Bengkulu",
-    "Lampung",
-    "Kepulauan Bangka Belitung",
-    "Kepulauan Riau",
-    "DKI Jakarta",
-    "Jawa Barat",
-    "Jawa Tengah",
-    "DI Yogyakarta",
-    "Jawa Timur",
-    "Banten",
-    "Bali",
-    "Nusa Tenggara Barat",
-    "Nusa Tenggara Timur",
-    "Kalimantan Barat",
-    "Kalimantan Tengah",
-    "Kalimantan Selatan",
-    "Kalimantan Timur",
-    "Kalimantan Utara",
-    "Sulawesi Utara",
-    "Sulawesi Tengah",
-    "Sulawesi Selatan",
-    "Sulawesi Tenggara",
-    "Gorontalo",
-    "Sulawesi Barat",
-    "Maluku",
-    "Maluku Utara",
-    "Papua",
-    "Papua Barat",
-    "Papua Selatan",
-    "Papua Tengah",
-    "Papua Pegunungan",
-    "Papua Barat Daya",
-]
-
 PLANOGRAM_OPTIONS = [
     "None",
     "PG001",
@@ -68,14 +26,13 @@ PLANOGRAM_OPTIONS = [
 ]
 
 
-def _get_last_result_summary() -> tuple[str, str, str]:
+def _get_last_result_summary() -> tuple[str, str]:
     result = st.session_state.get("result") or {}
     inner = result.get("result", result) if isinstance(result, dict) else {}
     detections = inner.get("detections") or []
     detection_count = str(len(detections)) if isinstance(detections, list) else "0"
     status = str(result.get("status", "idle")).upper() if isinstance(result, dict) else "IDLE"
-    last_request = st.session_state.get("request_id") or "-"
-    return detection_count, status, str(last_request)
+    return detection_count, status
 
 
 def _current_run_timestamp() -> tuple[str, str]:
@@ -131,7 +88,7 @@ def _render_history_cards(history: list[dict]):
     for entry in history[:6]:
         with st.container(border=True):
             st.write(f"**{entry.get('image_name', '-')}**")
-            st.caption(f"Request ID: {str(entry.get('request_id', '-'))[:12]}... | App ID: {entry.get('app_id', '-')} | Run: {entry.get('run_at_display', '-')}")
+            st.caption(f"App ID: {entry.get('app_id', '-')} | Run: {entry.get('run_at_display', '-')}")
             cols = st.columns(3)
             cols[0].metric("Detections", entry.get("detections", 0))
             cols[1].metric("Status", entry.get("status", "-"))
@@ -442,8 +399,7 @@ def _render_home_header():
     )
 
 
-def _render_monitor_hero(detection_count: str, history_count: int, run_status: str, last_request: str):
-    request_label = last_request[:12] + "..." if last_request != "-" and len(last_request) > 12 else last_request
+def _render_monitor_hero(detection_count: str, history_count: int, run_status: str):
     markdown_html(
         f"""
         <div class="home-shell">
@@ -467,7 +423,7 @@ def _render_monitor_hero(detection_count: str, history_count: int, run_status: s
                     </div>
                     <div class="monitor-stat">
                         <div class="monitor-stat-value">{escape(str(run_status))}</div>
-                        <div class="monitor-stat-label">Request {escape(str(request_label))}</div>
+                        <div class="monitor-stat-label">Status terakhir</div>
                     </div>
                 </div>
             </section>
@@ -477,12 +433,12 @@ def _render_monitor_hero(detection_count: str, history_count: int, run_status: s
 
 
 def render_home_page():
-    detection_count, run_status, last_request = _get_last_result_summary()
+    detection_count, run_status = _get_last_result_summary()
     history = st.session_state.get("analysis_history", [])
     history_count = len(history)
 
     _render_home_styles()
-    _render_monitor_hero(detection_count, history_count, run_status, last_request)
+    _render_monitor_hero(detection_count, history_count, run_status)
 
     left_col, right_col = st.columns([1.15, 0.95], gap="large")
     uploaded_path = st.session_state.get("uploaded_path")
@@ -545,11 +501,6 @@ def render_home_page():
                 "App ID *",
                 APP_OPTIONS,
                 key="selected_app",
-            )
-            _province = st.selectbox(
-                "Province",
-                PROVINCE_OPTIONS,
-                key="selected_province",
             )
             planogram_selection = st.selectbox(
                 "Planogram ID",

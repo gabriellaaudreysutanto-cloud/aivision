@@ -23,6 +23,7 @@ css_path = os.path.join(BASE_DIR, "assets", "styles_table.css")
 MODEL_PATH = os.getenv("YOLO_MODEL_PATH", os.path.join(BASE_DIR, "models", "best.pt"))
 PLANOGRAM_UPLOAD_DIR = os.path.join("uploads", "planogram_checks")
 PLANOGRAM_OUTPUT_DIR = os.path.join("output", "planogram_checks")
+COMPLIANCE_LOGIC_VERSION = "otsuka_only_v1"
 
 PRODUCT_NAME_ALIASES = {
     "pocari": "pocari sweat",
@@ -44,6 +45,20 @@ PRODUCT_NAME_ALIASES = {
     "hemaviton": "hemaviton",
     "isoplus": "isoplus",
 }
+
+OTSUKA_PRODUCT_TOKENS = (
+    "otsuka",
+    "pocari",
+    "pocari sweat",
+    "ion water",
+    "soyjoy",
+    "soy joy",
+    "oronamin",
+    "or beng",
+    "fibe",
+    "fibe mini",
+    "adem sari",
+)
 
 PACK_VARIANTS = ("orange", "blue", "yellow", "pink", "purple", "white", "teal")
 
@@ -113,7 +128,7 @@ def _render_planogram_cell(cell: dict) -> str:
     shape, color = _product_pack_style(label, str(cell.get("category", "")))
     pack_label = escape(_short_pack_label(label))
     full_label = escape(label)
-    star_badge = "<span class='plano-pocari-star' title='Produk Pocari'></span>" if cell.get("category") == "own" else ""
+    star_badge = "<span class='plano-pocari-star' title='Produk Otsuka'></span>" if cell.get("category") == "own" else ""
     return (
         f"<div class='plano-cell {category}' title='Row {row}, Column {col}: {full_label}'>"
         f"{star_badge}"
@@ -672,14 +687,37 @@ def classify_planogram_item(row: pd.Series) -> str:
 
     values = " ".join(
         str(row.get(field, "") or "").lower()
-        for field in ["product_type", "brand_name", "brand_group"]
+        for field in [
+            "product_id",
+            "product_name",
+            "short_name",
+            "product_type",
+            "brand_name",
+            "brand_group",
+        ]
     )
 
+    if any(token in values for token in OTSUKA_PRODUCT_TOKENS):
+        return "own"
     if any(token in values for token in ["competitor", "pesaing"]):
         return "competitor"
-    if any(token in values for token in ["own", "owner", "owned", "pocari", "principal"]):
+    if any(token in values for token in ["own", "owner", "owned", "principal"]):
         return "own"
     return "other"
+
+
+def is_otsuka_planogram_item(row: pd.Series) -> bool:
+    return classify_planogram_item(row) == "own"
+
+
+def is_otsuka_detection(detection: dict) -> bool:
+    raw_label = str(detection.get("class_name", "") or "").lower()
+    if "kompetitor" in raw_label or "competitor" in raw_label:
+        return False
+
+    canonical_label = str(detection.get("canonical_name", "") or "").lower()
+    values = f"{raw_label} {canonical_label}"
+    return any(token in values for token in OTSUKA_PRODUCT_TOKENS)
 
 
 def build_planogram_cells(df: pd.DataFrame, rows: int, cols: int):
@@ -780,6 +818,9 @@ def names_match(expected_name: str, detected_name: str) -> bool:
 def expected_planogram_positions(df: pd.DataFrame):
     expected = {}
     for _, row in df.iterrows():
+        if not is_otsuka_planogram_item(row):
+            continue
+
         shelf_row = row.get("shelf_row")
         shelf_col = row.get("shelf_column")
         product_name = row.get("short_name")
@@ -797,6 +838,7 @@ def expected_planogram_positions(df: pd.DataFrame):
             "product_name": str(product_name).strip(),
             "canonical_name": normalize_product_name(product_name),
             "expected_count": int(row.get("expected_count") or 1),
+            "category": "own",
             "match_values": [
                 row.get("product_id"),
                 row.get("short_name"),
@@ -1128,7 +1170,11 @@ def compare_planogram_to_detections(expected_positions, mapped_detections):
 
     unexpected_positions = []
     for detection in mapped_detections:
-        if id(detection) not in used_detection_ids and detection["position"] not in expected_positions:
+        if (
+            id(detection) not in used_detection_ids
+            and detection["position"] not in expected_positions
+            and is_otsuka_detection(detection)
+        ):
             unexpected_positions.append(detection)
 
     for detection in unexpected_positions:
@@ -1147,6 +1193,7 @@ def compare_planogram_to_detections(expected_positions, mapped_detections):
         )
 
     total_expected = len(expected_positions)
+    total_detected_otsuka = len([item for item in mapped_detections if is_otsuka_detection(item)])
     score = round(((matched + misplaced) / total_expected) * 100, 2) if total_expected else 0
 
     return {
@@ -1157,7 +1204,7 @@ def compare_planogram_to_detections(expected_positions, mapped_detections):
         "missing": missing,
         "unexpected": len(unexpected_positions),
         "total_expected": total_expected,
-        "total_detected": len(mapped_detections),
+        "total_detected": total_detected_otsuka,
         "messages": messages,
     }
 
@@ -1188,14 +1235,14 @@ def _readable_position(row, col) -> str:
 def _readable_compliance_note(item: dict, expected: str, detected: str, detected_col_label: str) -> str:
     status = item.get("status")
     if status == "match":
-        return f"Produk sudah sesuai. Di slot ini seharusnya {expected}, dan kamera juga membaca {detected}."
+        return f"Produk Otsuka sudah sesuai. Di slot ini seharusnya {expected}, dan kamera juga membaca {detected}."
     if status == "misplaced":
-        return f"Produknya benar, tetapi posisinya bergeser. Kamera membaca produk ini di {detected_col_label}."
+        return f"Produk Otsuka benar, tetapi posisinya bergeser. Kamera membaca produk ini di {detected_col_label}."
     if status == "missing":
-        return f"Produk {expected} seharusnya ada di slot ini, tetapi tidak terlihat jelas di foto."
+        return f"Produk Otsuka {expected} seharusnya ada di slot ini, tetapi tidak terlihat jelas di foto."
     if status == "unexpected":
-        return f"Kamera menemukan {detected}, tetapi produk ini tidak tercatat untuk slot planogram ini."
-    return f"Di slot ini seharusnya {expected}, tetapi kamera membaca {detected}."
+        return f"Kamera menemukan produk Otsuka {detected}, tetapi produk ini tidak tercatat untuk slot Otsuka di planogram."
+    return f"Di slot Otsuka ini seharusnya {expected}, tetapi kamera membaca {detected}."
 
 
 def _render_compliance_cards(items):
@@ -1442,7 +1489,7 @@ def _render_compliance_cards(items):
 
 
 def render_compliance_summary(comparison):
-    section_header("Hasil pengecekan rak", "Kartu di bawah menjelaskan posisi mana yang sudah sesuai dan mana yang perlu diperbaiki.")
+    section_header("Hasil pengecekan produk Otsuka", "Kartu di bawah hanya menilai slot produk Otsuka pada planogram.")
     metric_cols = st.columns(5)
     with metric_cols[0]:
         kpi_card("Nilai Cocok", f"{comparison['score']}%", tone="blue", icon="SC")
@@ -1455,19 +1502,22 @@ def render_compliance_summary(comparison):
     with metric_cols[4]:
         kpi_card("Kosong", comparison["missing"], tone="orange", icon="MS")
     st.caption(
-        f"AI membandingkan {comparison['total_detected']} produk yang terbaca di foto dengan "
-        f"{comparison['total_expected']} posisi yang seharusnya ada di planogram. "
-        f"Produk tambahan: {comparison['unexpected']}."
+        f"AI membandingkan {comparison['total_detected']} produk Otsuka yang terbaca di foto dengan "
+        f"{comparison['total_expected']} posisi produk Otsuka yang seharusnya ada di planogram. "
+        f"Produk Otsuka tambahan: {comparison['unexpected']}."
     )
 
-    _render_compliance_cards(comparison["messages"])
+    if comparison["messages"]:
+        _render_compliance_cards(comparison["messages"])
+    else:
+        st.info("Tidak ada slot produk Otsuka yang perlu ditampilkan untuk pengecekan ini.")
 
 
 def render_distribution_summary(cells):
     occupied_cells = [cell for cell in cells if cell["category"] != "empty"]
     total = len(occupied_cells)
     groups = [
-        ("Pocari Products", "own", "#0071e3"),
+        ("Otsuka Products", "own", "#0071e3"),
         ("Competitor Products", "competitor", "#bf5b00"),
         ("Other Brands", "other", "#6e6e73"),
     ]
@@ -1498,7 +1548,7 @@ def render_distribution_summary(cells):
         <div class="distribution-card">
             <div class="distribution-title">
                 <span class="distribution-icon"></span>
-                Shelf product distribution
+                Planogram product distribution
             </div>
             {''.join(rows)}
         </div>
@@ -1532,7 +1582,7 @@ def render_planogram_grid(planogram_id: str):
         if uploaded_image:
             image_bytes = uploaded_image.getvalue()
             image_hash = hashlib.sha256(image_bytes).hexdigest()
-            inference_key = f"planogram_compliance_{planogram_id}_{image_hash}"
+            inference_key = f"planogram_compliance_{COMPLIANCE_LOGIC_VERSION}_{planogram_id}_{image_hash}"
 
             if inference_key not in st.session_state:
                 with st.spinner("Running shelf detection and checking compliance..."):
